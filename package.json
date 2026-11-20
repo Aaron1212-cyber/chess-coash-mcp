@@ -1,0 +1,27 @@
+{
+  "name": "chess-coach-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test:analyze": "tsx scripts/test-analyze.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "chess.js": "^1.4.0",
+    "mcp-handler": "^1.0.2",
+    "next": "^15.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "stockfish": "^19.0.1",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}
