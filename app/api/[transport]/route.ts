@@ -5,6 +5,7 @@ import { cc, DEFAULT_USER, monthGames, recentGames, normalize, type RawGame } fr
 import { analyzeGame } from "@/lib/analyze";
 import { summarize } from "@/lib/summary";
 import { reviewGame, evaluatePosition } from "@/lib/engine";
+import { estimateGameRating } from "@/lib/gameRating";
 
 const text = (o: unknown) => ({ content: [{ type: "text" as const, text: typeof o === "string" ? o : JSON.stringify(o, null, 1) }] });
 const user = (u?: string) => (u ?? DEFAULT_USER).toLowerCase();
@@ -38,6 +39,7 @@ const handler = createMcpHandler(
         const [y, m] = (month ?? new Date().toISOString().slice(0, 7)).split("-");
         let g = (await monthGames(user(username), y, m)).map((x) => normalize(x, user(username), TZ));
         if (time_class) g = g.filter((x) => x.time_class === time_class);
+        g = g.map((x) => ({ ...x, est_game_rating: x.accuracy == null ? null : estimateGameRating(x.accuracy).rating }));
         return text({ total: g.length, games: g.slice(-limit).reverse() });
       });
 
@@ -79,6 +81,13 @@ const handler = createMcpHandler(
     server.tool("evaluate_position", "Stockfish evaluation of a single position (FEN): eval in centipawns from White's view, mate distance and best move.",
       { fen: z.string(), depth: z.number().int().min(6).max(18).default(14) },
       async ({ fen, depth }) => text(await evaluatePosition(fen, depth)));
+
+    server.tool("game_rating", "Estimate Chess.com Game Review game rating from accuracy (fitted to a few reviewed games, approximate).",
+      { accuracy: z.number().min(0).max(100) },
+      async ({ accuracy }) => {
+        const { rating, flag } = estimateGameRating(accuracy);
+        return text({ accuracy, est_game_rating: rating, note: flag || "within calibration range" });
+      });
   },
   {},
   { basePath: "/api", maxDuration: 60, verboseLogs: false },
